@@ -1,5 +1,5 @@
 # ETF_Analysis
-[Click to see catastrophic risks of my 2x Leveraged ETF's using SQL](https://github.com/chrismontes22/ETF_Analysis/blob/main/ETFs.sql)
+[Click to see catastrophic risks of my 2x Leveraged ETF's using SQL (ETF.SQL)](https://github.com/chrismontes22/ETF_Analysis/blob/main/ETFs.sql). Detailed instructions are here for using the file.
 
 The purpose of this script is to see which days in the past my leveraged ETF's would have gone to zero. I am invested in four of the most popular tech stocks: AAPL, GOOG, META, and MSFT. However, I am not invested directly in the base stocks themselves, but am invested rather through 2x leveraged ETF's. What this means is that I am taking double the risks and double the rewards.
 

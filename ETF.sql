@@ -30,7 +30,7 @@ CREATE TABLE AAPL (
 /*As stated before, we want to see any day where the Low crosses the set threshold. Adjustments are necessary because stock splits and other nominal stock events change the price.
 Many such stock events would result in days that dip below the 50% threshold. For example, if a day makes no gains or losses (no change in price), but has a 2:1 stock split, the script would show the day as a catastrophic loss.
 "Adj Close" counts for this, but we need to find the "Adj Low" since catastrophic loss can occur during the trading session. ("Adj Close" / "Close") of the given day gives us the ratio needed to adjust for nominal stock events.
-Then we basically do an ((a-b)/b) where a is the "Adj Low" and b is the PREVIOUS day's "Adj Close" to find the true day's low.
+Then we basically do a percent change calculation ((a-b)/b), where a is the "Adj Low" and b is the PREVIOUS day's "Adj Close", to find the true day's low.
 */
 
 WITH Daily_Changes AS (
