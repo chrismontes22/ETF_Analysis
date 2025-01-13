@@ -25,29 +25,38 @@ CREATE TABLE AAPL (
 --If you are not using psql, remove the "\" at the begining of this line. Make sure the permissions are set
 \COPY AAPL("Date", "Open", "High", "Low", "Close", "Adj Close", "Volume") FROM 'PATH\TO\FILE\AAPL.csv' DELIMITER ',' CSV HEADER;
 
-
-
-/*As stated before, we want to see any day where the Low crosses the set threshold. Adjustments are necessary because stock splits and other nominal stock events change the price.
+/*
+As stated before, we want to see any day where the Low crosses the set threshold. Adjustments are necessary because stock splits and other nominal stock events change the price.
 Many such stock events would result in days that dip below the 50% threshold. For example, if a day makes no gains or losses (no change in price), but has a 2:1 stock split, the script would show the day as a catastrophic loss.
 "Adj Close" counts for this, but we need to find the "Adj Low" since catastrophic loss can occur during the trading session. ("Adj Close" / "Close") of the given day gives us the ratio needed to adjust for nominal stock events.
+I will call this ratio "Nominal Event Ratio". Basically I am leveraging a second CTE in order to simplify the calculation. 
+The calculation without the second CTE would be;
+(("Low" * ("Adj Close" / "Close") - LAG("Adj Close") OVER (ORDER BY "Date")) / (LAG("Adj Close") OVER (ORDER BY "Date"))) * 100 AS "Percent Change".
+Instead it's somplified to;
+(("Low" * "Nominal Event Ratio" - "Previous Adj Close") / "Previous Adj Close") * 100 AS "Percent Change"
 Then we basically do a percent change calculation ((a-b)/b), where a is the "Adj Low" and b is the PREVIOUS day's "Adj Close", to find the true day's low.
 */
-
 WITH Daily_Changes AS (
     SELECT
         "Date",
         "Adj Close",
         "Low",
         "Close",
-        (("Low" * ("Adj Close" / "Close") - LAG("Adj Close") OVER (ORDER BY "Date")) / (LAG("Adj Close") OVER (ORDER BY "Date"))) * 100 AS "Percent Change"
+        ("Adj Close" / "Close") AS "Nominal Event Ratio",
+        LAG("Adj Close") OVER (ORDER BY "Date") AS "Previous Adj Close"
     FROM AAPL
+),
+Percent_Changes AS (
+    SELECT
+        "Date",
+        (("Low" * "Nominal Event Ratio" - "Previous Adj Close") / "Previous Adj Close") * 100 AS "Percent Change"
+    FROM Daily_Changes
 )
-SELECT
-    "Date",
-    "Percent Change"
-FROM Daily_Changes
+SELECT "Date", "Percent Change"
+FROM Percent_Changes
 WHERE "Percent Change" <= -50;
 
 
 --After looking at all the days for the four stocks (AAPL, GOOG, META, MSFT), only AAPL has experienced one single day where it dropped below 50% in any trading day.
 --This was during the tech bubble burst of 2000, but AAPL is now a much more mature company.
+
